@@ -7,7 +7,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
 
-/** Item do acervo, identificado por um código que não muda após sua criação. */
+
 public final class Item {
     private final String codigo;
     private final String titulo;

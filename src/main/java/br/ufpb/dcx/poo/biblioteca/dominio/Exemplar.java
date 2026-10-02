@@ -3,7 +3,7 @@ package br.ufpb.dcx.poo.biblioteca.dominio;
 import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 
-/** Exemplar físico de um item, com tombo imutável e estado controlado. */
+
 public final class Exemplar {
     private final String tombo;
     private final Item item;

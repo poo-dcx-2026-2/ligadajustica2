@@ -2,7 +2,6 @@ package br.ufpb.dcx.poo.biblioteca.dominio;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 
-/** Usuário do sistema, identificado de forma estável pela matrícula. */
 public final class Usuario {
     private final String matricula;
     private final String nome;

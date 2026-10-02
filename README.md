@@ -2,7 +2,7 @@
 
 Projeto incremental da disciplina de **Programação Orientada a Objetos** — DCX/CCAE/UFPB.
 
-Este repositório é o ponto de partida do seu projeto. Ele compila, executa e tem testes passando, mas está **deliberadamente incompleto** e contém decisões de design questionáveis. Encontrá-las, justificá-las e corrigi-las faz parte da disciplina.
+Este projeto implementa os serviços de acervo e usuários previstos na Entrega 1. Empréstimos, relatórios, persistência e outras operações continuam como esqueletos para as entregas seguintes.
 
 ---
 
@@ -15,9 +15,7 @@ mvn -B verify      # compila e roda os testes
 mvn -B test        # só os testes
 ```
 
-Se tudo estiver certo, você verá `Tests run: 19, Failures: 0, Errors: 0, Skipped: 5`.
-
-Os 5 pulados são os testes marcados com `@Disabled`: eles cobrem o que você ainda vai implementar. Remova a anotação de cada um quando implementar o método correspondente.
+Se tudo estiver certo, o Maven termina com `BUILD SUCCESS` e nenhum teste falhando.
 
 ---
 
@@ -37,9 +35,9 @@ src/main/java/br/ufpb/dcx/poo/biblioteca/
 │
 ├── Fabrica.java       ← nome e assinatura congelados; o corpo é seu
 │
-└── inicial/           ← ponto de partida; altere, mova, renomeie ou apague
-    ├── Item.java
-    ├── Exemplar.java
+├── dominio/           ← Item, Exemplar e Usuario; protegem identidade e invariantes
+│
+└── inicial/           ← serviços em memória e esqueletos das Entregas 2 e 3
     ├── AcervoEmMemoria.java
     ├── UsuariosEmMemoria.java
     ├── EmprestimosNaoImplementados.java
@@ -67,21 +65,33 @@ Fora isso, **tudo é seu**. O pacote `inicial` não é modelo: é matéria-prima
 
 | Serviço | Situação |
 |---|---|
-| `AcervoService` | `cadastrarItem`, `buscarItem` e `listarItens` funcionam para os casos simples. O resto é seu. |
-| `UsuarioService` | `cadastrarUsuario`, `buscarUsuario` e `listarUsuarios` funcionam. `desativar`/`reativar` são da Entrega 2. |
+| `AcervoService` | Cadastro, busca/listagem por título e cadastro/listagem de exemplares implementados nesta entrega. Categoria e baixa de exemplar são da Entrega 2. |
+| `UsuarioService` | Cadastro, busca e listagem implementados nesta entrega. `desativar`/`reativar` são da Entrega 2. |
 | `EmprestimoService` | Esqueleto. Entrega 2. |
 | `RelatorioService` | Esqueleto. Entrega 3. |
 | `Biblioteca.salvar/carregar` | Esqueleto. Entrega 2. |
 
 Métodos ainda não implementados lançam `UnsupportedOperationException` com a indicação da entrega. Cada mensagem diz o que fazer.
 
+## Modelo de domínio
+
+O fonte PlantUML está em [`docs/modelo.puml`](docs/modelo.puml), e a imagem correspondente está em [`docs/modelo.png`](docs/modelo.png).
+
 ---
+
+## Justificativa das coleções
+
+O acervo usa `Map<String, Item>` para localizar cada item pelo código sem percorrer todos os cadastros. Um segundo `Map<String, Exemplar>` indexa os tombos no acervo inteiro e permite recusar duplicidade entre itens diferentes. Os exemplares também pertencem ao seu `Item`, que mantém a relação e devolve uma cópia da lista.
+
+Os usuários ficam em `Map<String, Usuario>`, porque a matrícula é sua identidade e as operações mais comuns buscam ou recusam duplicidade por matrícula. As consultas ordenadas constroem listas de `View` e não expõem os mapas internos.
+
+## Relato do defeito encontrado
+
+A busca inicial do item comparava códigos com `==`, que verifica se duas referências apontam para o mesmo objeto, em vez de comparar o texto. Reproduzimos o erro cadastrando o código `L1` e buscando com `new String("L1")`: apesar do mesmo conteúdo, a busca dizia que o item não existia. O teste de regressão `codigoComMesmoValorEmOutraInstancia` falhou antes da correção e passou depois que a busca passou a usar a chave do `Map`, que compara Strings pelo valor.
 
 ## Um aviso honesto
 
-O código do pacote `inicial` **tem problemas**. Alguns são de design e você vai reconhecê-los conforme a disciplina avançar. Pelo menos um é um defeito de comportamento que os testes atuais **não** pegam: o sistema faz a coisa errada em uma situação que ninguém testou ainda.
-
-Isso é proposital. Encontrar esse tipo de defeito — reproduzir, escrever o teste que falha, corrigir, ver o teste passar — é uma das competências avaliadas. Não confie em suíte verde como prova de correção.
+O ponto de partida continha decisões de design questionáveis e um defeito de comportamento não coberto pelos testes originais. O defeito já foi reproduzido, coberto por um teste de regressão e corrigido; o relato acima registra esse processo. A suíte verde continua sendo evidência dos cenários testados, não prova absoluta de ausência de defeitos.
 
 ---
 
@@ -91,7 +101,7 @@ Sua equipe escolhe um acervo próprio: jogos, filmes, quadrinhos, instrumentos, 
 
 ### Nossa extensão
 
-> Substitua esta seção: qual acervo, qual regra de negócio própria, o que ela muda no comportamento do sistema.
+**Acervo:** quadrinhos da Liga da Justiça. **Regra própria:** um usuário só pode tomar emprestada uma edição se sua idade for igual ou maior que a classificação indicativa da edição. Isso acrescenta a classificação ao cadastro da edição e uma verificação ao fluxo de empréstimo; a regra e os tipos da extensão ficam fora do pacote `contrato`. Nesta Entrega 1, a regra fica declarada; sua implementação é prevista para a Entrega 2. *(Proposta inferida pelo nome do repositório; a equipe deve confirmar ou ajustar antes de entregar.)*
 
 ---
 

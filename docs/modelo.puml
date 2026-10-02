@@ -1,32 +1,90 @@
 @startuml
-' Modelo de domínio do sistema: Entrega 1.
-'
-' Este arquivo é o ponto de partida. Substitua pelo modelo da sua equipe.
-' O diagrama precisa corresponder ao código entregue.
-'
-' Para gerar a imagem: instale o plugin PlantUML no IntelliJ, ou use
-'   plantuml docs/modelo.puml
-' e versione a imagem gerada ao lado deste arquivo.
-
+!pragma layout smetana
 skinparam classAttributeIconSize 0
 hide empty members
 
-class Item {
-  - codigo : String
-  - titulo : String
+package "domínio" {
+  class Item {
+    - codigo : String {readOnly}
+    - titulo : String {readOnly}
+    - autoria : String {readOnly}
+    - categoria : String {readOnly}
+    - ano : int {readOnly}
+    - exemplares : List<Exemplar>
+    + adicionarExemplar(exemplar : Exemplar)
+    + getExemplares() : List<Exemplar>
+    + totalDeExemplares() : int
+    + exemplaresDisponiveis() : int
+  }
+
+  class Exemplar {
+    - tombo : String {readOnly}
+    - item : Item {readOnly}
+    - status : StatusExemplar
+    + setStatus(status : StatusExemplar)
+  }
+
+  class Usuario {
+    - matricula : String {readOnly}
+    - nome : String {readOnly}
+    - ativo : boolean
+    - emprestimosAtivos : int
+  }
 }
 
-class Exemplar {
-  - tombo : String
+package "serviços em memória" {
+  class AcervoEmMemoria {
+    - itensPorCodigo : Map<String, Item>
+    - exemplaresPorTombo : Map<String, Exemplar>
+    + cadastrarItem(codigo : String, titulo : String, autoria : String, categoria : String, ano : int)
+    + buscarItem(codigo : String) : ItemView
+    + listarItens() : List<ItemView>
+    + buscarPorTitulo(trecho : String) : List<ItemView>
+    + adicionarExemplar(codigo : String, tombo : String)
+    + listarExemplares(codigo : String) : List<ExemplarView>
+    + buscarPorCategoria(categoria : String) : List<ItemView>
+    + baixarExemplar(tombo : String)
+  }
+
+  class UsuariosEmMemoria {
+    - usuariosPorMatricula : Map<String, Usuario>
+    + cadastrarUsuario(matricula : String, nome : String)
+    + buscarUsuario(matricula : String) : UsuarioView
+    + listarUsuarios() : List<UsuarioView>
+    + desativarUsuario(matricula : String)
+    + reativarUsuario(matricula : String)
+  }
+
+  class BibliotecaInicial {
+    - acervo : AcervoEmMemoria
+    - usuarios : UsuariosEmMemoria
+    - emprestimos : EmprestimosNaoImplementados
+    - relatorios : RelatoriosNaoImplementados
+    + salvar()
+    + carregar()
+  }
+  class EmprestimosNaoImplementados
+  class RelatoriosNaoImplementados
 }
 
 Item "1" *-- "0..*" Exemplar : possui
+AcervoEmMemoria "1" o-- "0..*" Item : indexa por código
+AcervoEmMemoria "1" o-- "0..*" Exemplar : indexa por tombo
+UsuariosEmMemoria "1" o-- "0..*" Usuario : indexa por matrícula
+BibliotecaInicial *-- AcervoEmMemoria
+BibliotecaInicial *-- UsuariosEmMemoria
+BibliotecaInicial *-- EmprestimosNaoImplementados
+BibliotecaInicial *-- RelatoriosNaoImplementados
+
+note right of AcervoEmMemoria
+  O índice separado de tombos assegura
+  unicidade global dos exemplares.
+end note
 
 note bottom of Item
-  Ponto de partida, não modelo pronto.
-  Decidam: quais entidades existem,
-  quem guarda o quê, quais invariantes
-  cada objeto protege.
+  Código e título são obrigatórios.
+  A identidade do item é imutável e a lista
+  devolvida é uma cópia defensiva.
 end note
 
 @enduml

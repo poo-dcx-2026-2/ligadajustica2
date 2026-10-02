@@ -44,6 +44,7 @@ class UsuarioTest {
 
         assertThrows(RecursoDuplicadoException.class,
                 () -> biblioteca.usuarios().cadastrarUsuario("2026001", "Outro Nome"));
+        assertEquals(1, biblioteca.usuarios().listarUsuarios().size());
     }
 
     @Test
@@ -61,13 +62,52 @@ class UsuarioTest {
     }
 
     @Test
+    @DisplayName("nome nulo é entrada inválida")
+    void nomeNulo() {
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.usuarios().cadastrarUsuario("2026001", null));
+    }
+
+    @Test
+    @DisplayName("matrícula em branco é entrada inválida")
+    void matriculaEmBranco() {
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.usuarios().cadastrarUsuario("  ", "Ana Souza"));
+    }
+
+    @Test
+    @DisplayName("nomes iguais são permitidos quando as matrículas diferem")
+    void mesmoNomeComMatriculasDiferentes() throws BibliotecaException {
+        biblioteca.usuarios().cadastrarUsuario("1", "Ana Souza");
+        biblioteca.usuarios().cadastrarUsuario("2", "Ana Souza");
+
+        assertEquals(2, biblioteca.usuarios().listarUsuarios().size());
+    }
+
+    @Test
+    @DisplayName("a lista devolvida não permite alterar o cadastro interno")
+    void listaDeUsuariosEhDefensiva() throws BibliotecaException {
+        biblioteca.usuarios().cadastrarUsuario("1", "Ana Souza");
+
+        biblioteca.usuarios().listarUsuarios().clear();
+
+        assertEquals(1, biblioteca.usuarios().listarUsuarios().size());
+    }
+
+    @Test
     @DisplayName("listar devolve os usuários ordenados por nome")
     void listarOrdenado() throws BibliotecaException {
-        biblioteca.usuarios().cadastrarUsuario("3", "Carlos");
-        biblioteca.usuarios().cadastrarUsuario("1", "Ana");
+        biblioteca.usuarios().cadastrarUsuario("3", "carlos");
+        biblioteca.usuarios().cadastrarUsuario("1", "ana");
         biblioteca.usuarios().cadastrarUsuario("2", "Bruno");
 
-        assertEquals("Ana", biblioteca.usuarios().listarUsuarios().get(0).nome());
-        assertEquals("Carlos", biblioteca.usuarios().listarUsuarios().get(2).nome());
+        assertEquals("ana", biblioteca.usuarios().listarUsuarios().get(0).nome());
+        assertEquals("carlos", biblioteca.usuarios().listarUsuarios().get(2).nome());
+    }
+
+    @Test
+    @DisplayName("cadastro vazio de usuários devolve lista vazia")
+    void semUsuarios() {
+        assertEquals(java.util.List.of(), biblioteca.usuarios().listarUsuarios());
     }
 }

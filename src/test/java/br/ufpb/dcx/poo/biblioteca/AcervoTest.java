@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,9 +20,8 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
 /**
  * Testes públicos do acervo.
  *
- * <p>Os testes ativos passam com o código que veio no repositório. Os marcados com
- * {@code @Disabled} cobrem o que você ainda precisa implementar: remova a anotação
- * quando for implementar cada método.</p>
+ * <p>Os testes cobrem o contrato implementado na Entrega 1 e alguns casos de
+ * regressão. Eles são um piso, não um teto.</p>
  *
  * <p>Estes testes são um piso, não um teto. A avaliação considera a suíte que
  * <em>você</em> escreve — cenários, casos-limite e regras de negócio que estes aqui
@@ -69,6 +67,7 @@ class AcervoTest {
 
         assertThrows(RecursoDuplicadoException.class,
                 () -> biblioteca.acervo().cadastrarItem("L1", "Outro", "Outra", "livro", 2020));
+        assertEquals(1, biblioteca.acervo().listarItens().size());
     }
 
     @Test
@@ -88,16 +87,16 @@ class AcervoTest {
     @Test
     @DisplayName("listar devolve os itens ordenados por título")
     void listarOrdenado() throws BibliotecaException {
-        biblioteca.acervo().cadastrarItem("L1", "Refatoração", "Fowler", "livro", 2004);
-        biblioteca.acervo().cadastrarItem("L2", "Código limpo", "Martin", "livro", 2009);
-        biblioteca.acervo().cadastrarItem("L3", "Java Efetivo", "Bloch", "livro", 2019);
+        biblioteca.acervo().cadastrarItem("L1", "zebra", "Fowler", "livro", 2004);
+        biblioteca.acervo().cadastrarItem("L2", "Abacate", "Martin", "livro", 2009);
+        biblioteca.acervo().cadastrarItem("L3", "manga", "Bloch", "livro", 2019);
 
         List<ItemView> itens = biblioteca.acervo().listarItens();
 
         assertEquals(3, itens.size());
-        assertEquals("Código limpo", itens.get(0).titulo());
-        assertEquals("Java Efetivo", itens.get(1).titulo());
-        assertEquals("Refatoração", itens.get(2).titulo());
+        assertEquals("Abacate", itens.get(0).titulo());
+        assertEquals("manga", itens.get(1).titulo());
+        assertEquals("zebra", itens.get(2).titulo());
     }
 
     @Test
@@ -106,17 +105,44 @@ class AcervoTest {
         assertEquals(List.of(), biblioteca.acervo().listarItens());
     }
 
+    @Test
+    @DisplayName("a busca compara códigos pelo valor do texto")
+    void codigoComMesmoValorEmOutraInstancia() throws BibliotecaException {
+        biblioteca.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2019);
+
+        assertEquals("L1", biblioteca.acervo().buscarItem(new String("L1")).codigo());
+    }
+
+    @Test
+    @DisplayName("cadastro inválido não deixa item parcialmente gravado")
+    void tituloEmBrancoNaoDeixaResiduo() throws BibliotecaException {
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.acervo().cadastrarItem("L1", "  ", "Bloch", "livro", 2019));
+
+        assertEquals(0, biblioteca.acervo().listarItens().size());
+    }
+
+    @Test
+    @DisplayName("a lista de itens devolvida não expõe o estado interno")
+    void listaDeItensEhDefensiva() throws BibliotecaException {
+        biblioteca.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2019);
+
+        List<ItemView> resultado = biblioteca.acervo().listarItens();
+        resultado.clear();
+
+        assertEquals(1, biblioteca.acervo().listarItens().size());
+    }
+
     // ------------------------------------------------------------------
-    // A implementar na Entrega 1. Remova @Disabled ao implementar cada um.
+    // Cenários centrais da implementação de itens e exemplares.
     // ------------------------------------------------------------------
 
     @Test
-    @Disabled("Entrega 1: implementar adicionarExemplar e listarExemplares")
     @DisplayName("exemplar adicionado entra como DISPONIVEL e conta no item")
     void adicionarExemplar() throws BibliotecaException {
         biblioteca.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2019);
-        biblioteca.acervo().adicionarExemplar("L1", "T-001");
         biblioteca.acervo().adicionarExemplar("L1", "T-002");
+        biblioteca.acervo().adicionarExemplar("L1", "T-001");
 
         ItemView item = biblioteca.acervo().buscarItem("L1");
         assertEquals(2, item.totalDeExemplares());
@@ -127,7 +153,27 @@ class AcervoTest {
     }
 
     @Test
-    @Disabled("Entrega 1: implementar adicionarExemplar")
+    @DisplayName("tombo inválido não deixa exemplar parcialmente cadastrado")
+    void tomboEmBrancoNaoDeixaResiduo() throws BibliotecaException {
+        biblioteca.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2019);
+
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.acervo().adicionarExemplar("L1", "  "));
+        assertEquals(0, biblioteca.acervo().buscarItem("L1").totalDeExemplares());
+    }
+
+    @Test
+    @DisplayName("a lista de exemplares devolvida é independente do acervo")
+    void listaDeExemplaresEhDefensiva() throws BibliotecaException {
+        biblioteca.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2019);
+        biblioteca.acervo().adicionarExemplar("L1", "T-001");
+
+        biblioteca.acervo().listarExemplares("L1").clear();
+
+        assertEquals(1, biblioteca.acervo().listarExemplares("L1").size());
+    }
+
+    @Test
     @DisplayName("tombo é único no acervo inteiro, não apenas dentro do item")
     void tomboDuplicadoEntreItensDiferentes() throws BibliotecaException {
         biblioteca.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2019);
@@ -136,18 +182,19 @@ class AcervoTest {
 
         assertThrows(RecursoDuplicadoException.class,
                 () -> biblioteca.acervo().adicionarExemplar("L2", "T-001"));
+        assertEquals(0, biblioteca.acervo().buscarItem("L2").totalDeExemplares());
     }
 
     @Test
-    @Disabled("Entrega 1: implementar adicionarExemplar")
     @DisplayName("não se adiciona exemplar a item que não existe")
     void exemplarDeItemInexistente() {
         assertThrows(RecursoNaoEncontradoException.class,
                 () -> biblioteca.acervo().adicionarExemplar("NAO-EXISTE", "T-001"));
+        assertThrows(RecursoNaoEncontradoException.class,
+                () -> biblioteca.acervo().listarExemplares("NAO-EXISTE"));
     }
 
     @Test
-    @Disabled("Entrega 1: implementar buscarPorTitulo")
     @DisplayName("busca por título ignora maiúsculas e aceita trecho")
     void buscarPorTitulo() throws BibliotecaException {
         biblioteca.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2019);
@@ -158,7 +205,6 @@ class AcervoTest {
     }
 
     @Test
-    @Disabled("Entrega 1: implementar buscarPorTitulo")
     @DisplayName("busca sem resultado devolve lista vazia, não exceção")
     void buscarPorTituloSemResultado() {
         assertEquals(List.of(), biblioteca.acervo().buscarPorTitulo("inexistente"));

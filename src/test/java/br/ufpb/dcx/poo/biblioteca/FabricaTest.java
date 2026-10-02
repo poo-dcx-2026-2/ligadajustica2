@@ -39,8 +39,11 @@ class FabricaTest {
         assertNotSame(uma, outra);
 
         uma.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2019);
+        uma.usuarios().cadastrarUsuario("1", "Ana");
 
         assertEquals(1, uma.acervo().listarItens().size());
         assertEquals(0, outra.acervo().listarItens().size());
+        assertEquals(1, uma.usuarios().listarUsuarios().size());
+        assertEquals(0, outra.usuarios().listarUsuarios().size());
     }
 }

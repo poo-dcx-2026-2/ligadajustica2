@@ -9,9 +9,12 @@ sim.
 
 ## Equipe
 
-| Nome | Matrícula |
-|---|---|
-| | |
+| Nome                   | Matrícula   |
+|------------------------|-------------|
+| Eduardo Ferreira Grisi | 20250114025 |
+| Guilherme da Silva Virginio| 20250144946|
+
+Inclua uma linha para cada integrante da equipe.
 
 ## Uso declarado
 
@@ -19,7 +22,8 @@ Uma linha por uso relevante. Se não houve uso, escreva "Não houve uso de ferra
 
 | Data | Ferramenta | Finalidade | Arquivos/trechos afetados | O que foi revisado e alterado por vocês |
 |---|---|---|---|---|
-| | | | | |
+|
+| 2026-10-02 | OpenAI Codex | Modelar usuários por matrícula, implementar cadastro, busca e listagem, e ampliar testes de isolamento e casos inválidos | `src/main/java/br/ufpb/dcx/poo/biblioteca/dominio/Usuario.java`; `src/main/java/br/ufpb/dcx/poo/biblioteca/inicial/UsuariosEmMemoria.java`; `src/test/java/br/ufpb/dcx/poo/biblioteca/UsuarioTest.java`; `src/test/java/br/ufpb/dcx/poo/biblioteca/FabricaTest.java` |Codex executado mvn -B verify: 29 testes aprovados, sem falhas, erros ou testes ignorados. A equipe revisou manualmente o projeto e os testes; com apoio do Codex, as falhas identificadas foram corrigidas. A equipe conferiu as alterações e validou o resultado com os testes.
 
 ## Compromisso
 
@@ -31,4 +35,6 @@ Ao entregar, a equipe declara que:
 - está ciente de que cada integrante fará uma alteração individual em sala, sem consulta,
   na defesa da Entrega 3.
 
-Assinaturas (nome e data):
+Assinaturas (preencher por cada integrante, após revisão; nome, data e assinatura):
+Eduardo Grisi 02/10/26
+Guilherme Virginio 02/10/26
